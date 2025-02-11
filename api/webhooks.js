@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
+// **GET: Verificación del Webhook de Meta**
 router.get("/", (req, res) => {
     console.log("➡️ GET recibido en /webhook");
 
@@ -20,10 +21,17 @@ router.get("/", (req, res) => {
     }
 });
 
+// **POST: Recepción de eventos de Meta**
 router.post("/", (req, res) => {
     console.log("📩 POST recibido en /webhook");
-    console.log("Evento recibido:", JSON.stringify(req.body, null, 2));
-    res.status(200).send("EVENT_RECEIVED");
+    console.log("📦 Evento recibido:", JSON.stringify(req.body, null, 2));
+
+    if (!req.body || typeof req.body !== "object") {
+        console.error("❌ El cuerpo de la solicitud POST es inválido.");
+        return res.status(400).send("Invalid request body");
+    }
+
+    return res.status(200).send("EVENT_RECEIVED");
 });
 
 module.exports = router;
