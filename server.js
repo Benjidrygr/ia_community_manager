@@ -2,7 +2,7 @@ const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
 
-const webhookRoutes = require("./api/webhooks"); // Importamos el webhook
+const webhookRoutes = require("./api/routes/webhooks"); // Importamos el webhook
 const app = express();
 const PORT = process.env.PORT || 10000; // Render usa 10000 por defecto
 
