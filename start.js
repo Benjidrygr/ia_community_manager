@@ -1,7 +1,16 @@
-const { spawn } = require('child_process');
+const { spawn, execSync } = require('child_process');
 const path = require('path');
 
 console.log('🚀 Iniciando servicios...');
+
+// Instalar dependencias de Python
+console.log('📦 Instalando dependencias de Python...');
+try {
+    execSync('pip install -r requirements.txt', { stdio: 'inherit' });
+} catch (error) {
+    console.error('❌ Error instalando dependencias de Python:', error);
+    process.exit(1);
+}
 
 // Iniciar el servidor Python
 console.log('📝 Iniciando servidor Python...');
