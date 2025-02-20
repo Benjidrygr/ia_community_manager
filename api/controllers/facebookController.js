@@ -1,6 +1,9 @@
 const axios = require('axios');
 const { logInfo, logError } = require("../utils/logger");
 
+// Configuración del servidor Python
+const PYTHON_SERVER_URL = process.env.PYTHON_SERVER_URL || 'http://localhost:8000';
+
 exports.processEvent = async (event) => {
     logInfo("📘 Evento de Facebook recibido");
     
@@ -35,14 +38,15 @@ exports.processEvent = async (event) => {
                         content: commentData.content
                     });
 
-                    // Enviar al procesador de Python
+                    // Enviar al servidor Python
                     const response = await axios.post(
-                        'http://localhost:8000/process-comment',
+                        `${PYTHON_SERVER_URL}/process-comment`,
                         commentData
                     );
 
-                    if (response.data.response) {
-                        logInfo(`✅ Respuesta generada para Facebook: ${response.data.response}`);
+                    if (response.data && response.data.response) {
+                        logInfo(`✅ Respuesta del agente: ${response.data.response}`);
+                        // Aquí puedes agregar la lógica para responder al comentario en Facebook
                     }
                 }
             }
