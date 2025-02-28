@@ -24,6 +24,10 @@ class CommentData(BaseModel):
 @app.post("/process-comment")
 async def process_comment(comment: CommentData):
     try:
+        # Asegurarse de que el agente está inicializado correctamente
+        if not hasattr(agent, 'training_data') or agent.training_data is None:
+            return {"response": "El agente no está inicializado correctamente."}
+            
         # Preparar el comentario para el agente
         comment_data = {
             'platform': comment.platform,

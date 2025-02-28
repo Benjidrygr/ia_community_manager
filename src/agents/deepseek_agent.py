@@ -36,17 +36,22 @@ class CommunityManagerAgent:
     
     def _load_training_files(self) -> str:
         """
-        Carga todos los archivos de entrenamiento del directorio train_files
+        Carga todos los archivos de entrenamiento del directorio training_files
         """
         training_data = []
-        train_files_path = 's../rc/train_files'
+        train_files_path = os.path.join(os.path.dirname(__file__), '..', 'training_files')
         
-        for filename in os.listdir(train_files_path):
-            if filename.endswith('.txt'):
-                with open(os.path.join(train_files_path, filename), 'r', encoding='utf-8') as f:
-                    training_data.append(f.read())
-        
-        return "\n\n".join(training_data)
+        try:
+            for filename in os.listdir(train_files_path):
+                if filename.endswith('.txt'):
+                    file_path = os.path.join(train_files_path, filename)
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        training_data.append(f.read())
+            
+            return "\n\n".join(training_data)
+        except Exception as e:
+            print(f"Error cargando archivos de entrenamiento: {e}")
+            return ""
     
     async def process_comment(self, comment: Dict) -> str:
         """
