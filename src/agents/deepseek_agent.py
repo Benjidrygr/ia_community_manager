@@ -39,7 +39,7 @@ class CommunityManagerAgent:
         Carga todos los archivos de entrenamiento del directorio training_files
         """
         training_data = []
-        train_files_path = os.path.join(os.path.dirname(__file__), '..', 'training_files')
+        train_files_path = os.path.join(os.path.dirname(__file__), '..', 'train_files')
         
         try:
             for filename in os.listdir(train_files_path):
