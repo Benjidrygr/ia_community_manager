@@ -29,10 +29,13 @@ async def app(scope, receive, send):
         'body': response_bytes,
     })
 
+# Crear una variable para la aplicación
+application = app
+
 if __name__ == "__main__":
     print("🤖 Iniciando servidor básico de IA...")
     uvicorn.run(
-        app,
+        "main:application",  # Cambiado de app a "main:application"
         host="0.0.0.0",
         port=8000,
         reload=True
