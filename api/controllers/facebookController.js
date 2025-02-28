@@ -26,15 +26,15 @@ exports.processEvent = async (event) => {
                         content: change.value.message,
                         comment_id: change.value.comment_id,
                         user_id: change.value.from.id,
-                        user_name: change.value.from.name,
+                        username: change.value.from.name,
                         post_id: change.value.post_id,
                         parent_id: change.value.parent_id,
-                        created_time: change.value.created_time,
-                        permalink: change.value.post.permalink_url
+                        timestamp: change.value.created_time,
+                        media_id: change.value.post.id
                     };
 
                     logInfo("💬 Comentario de Facebook detectado:", {
-                        user: commentData.user_name,
+                        user: commentData.username,
                         content: commentData.content
                     });
 
