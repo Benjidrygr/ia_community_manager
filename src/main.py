@@ -1,4 +1,5 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from typing import Optional
 from agents.deepseek_agent import CommunityManagerAgent
@@ -20,6 +21,10 @@ class CommentData(BaseModel):
     timestamp: Optional[str]
     created_time: Optional[str]
     permalink: Optional[str]
+
+@app.get("/")
+async def root():
+    return {"message": "API del Community Manager está funcionando"}
 
 @app.post("/process-comment")
 async def process_comment(comment: CommentData):
