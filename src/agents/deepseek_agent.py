@@ -20,7 +20,7 @@ class CommunityManagerAgent:
         
         # Inicializar el modelo a través de Ollama
         self.model = Ollama(
-            model="deepseek-r1",  # Asegúrate que este sea el nombre correcto de tu modelo en ollama
+            model="deepseek-r1:7b",  # Asegúrate que este sea el nombre correcto de tu modelo en ollama
             base_url=self.ollama_url  # URL de Ollama
         )
         
@@ -71,11 +71,11 @@ class CommunityManagerAgent:
                 "stream": False
             }
             
-            print(f"📤 Enviando solicitud a Ollama: {self.ollama_url}/api/chat")
+            print(f"📤 Enviando solicitud a Ollama: {self.ollama_url}/api/generate")
             
             # Hacer la solicitud a Ollama
             response = requests.post(
-                f"{self.ollama_url}/api/chat",
+                f"{self.ollama_url}/api/generate",
                 json=payload,
                 timeout=30  # Aumentar el timeout a 30 segundos
             )
