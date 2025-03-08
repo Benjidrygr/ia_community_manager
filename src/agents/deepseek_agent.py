@@ -66,7 +66,7 @@ class CommunityManagerAgent:
             
             # Preparar la solicitud a Ollama
             payload = {
-                "model": "deepseek",
+                "model": "deepseek-r1:7b",
                 "prompt": prompt,
                 "stream": False
             }
