@@ -71,7 +71,7 @@ class CommunityManagerAgent:
                 "stream": False
             }
             
-            print(f"📤 Enviando solicitud a Ollama: {self.ollama_url}/api/generate")
+            print(f"📤 Enviando solicitud a Ollama: {self.ollama_url}/api/chat")
             
             # Hacer la solicitud a Ollama
             response = requests.post(
