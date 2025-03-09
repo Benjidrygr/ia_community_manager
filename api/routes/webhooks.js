@@ -8,6 +8,9 @@ const { logInfo, logError } = require("../utils/logger");
 const PYTHON_PORT = process.env.PYTHON_SERVER_PORT || 8000;
 const IA_SERVER_URL = `http://localhost:${PYTHON_PORT}`;
 
+// Nombre de la página que no debe ser respondida
+const BOT_PAGE_NAME = "CoPrinter SAC";
+
 router.post('/', async (req, res) => {
     try {
         // Verificación del webhook de Facebook
@@ -22,6 +25,12 @@ router.post('/', async (req, res) => {
                             username: change.value.from.name,
                             commentId: change.value.comment_id
                         };
+
+                        // Verificar si el comentario es de nuestra página
+                        if (commentData.username === BOT_PAGE_NAME) {
+                            logInfo("🤖 Ignorando comentario de la página:", commentData);
+                            continue; // Saltar este comentario
+                        }
 
                         logInfo("💬 Comentario detectado:", commentData);
 
