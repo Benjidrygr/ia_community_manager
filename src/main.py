@@ -2,7 +2,6 @@ from typing import Dict
 import uvicorn
 import json
 from agents.deepseek_agent import CommunityManagerAgent
-import os
 
 # Inicializar el agente
 agent = CommunityManagerAgent()
@@ -36,13 +35,17 @@ async def app(scope, receive, send):
         body = await receive_body(receive)
         try:
             comment_data = json.loads(body)
+            print(f"📝 Procesando comentario: {comment_data}")
+            
             # Procesar el comentario usando el agente
             response = await agent.process_comment(comment_data)
             
             if response:
                 result = {"response": response}
+                print(f"✅ Respuesta generada: {response}")
             else:
                 result = {"error": "No se pudo generar una respuesta"}
+                print("❌ No se pudo generar una respuesta")
                 
             response_bytes = json.dumps(result).encode('utf-8')
             
@@ -59,6 +62,7 @@ async def app(scope, receive, send):
                 'body': response_bytes,
             })
         except Exception as e:
+            print(f"❌ Error procesando comentario: {str(e)}")
             error_response = {"error": str(e)}
             error_bytes = json.dumps(error_response).encode('utf-8')
             
@@ -109,10 +113,9 @@ application = app
 
 if __name__ == "__main__":
     print("🤖 Iniciando servidor de IA...")
-    port = int(os.getenv('PYTHON_SERVER_PORT', 8000))
     uvicorn.run(
         "main:application",
         host="0.0.0.0",
-        port=port,
+        port=8000,
         reload=True
     )

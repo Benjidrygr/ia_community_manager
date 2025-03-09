@@ -27,14 +27,9 @@ router.post('/', async (req, res) => {
 
                         try {
                             // Enviar al servidor de IA
-                            logInfo(`🚀 Enviando a servidor IA: ${IA_SERVER_URL}/process-comment`);
-                            const iaResponse = await axios.post(`${IA_SERVER_URL}/process-comment`, commentData, {
-                                timeout: 30000 // 30 segundos de timeout
-                            });
+                            const iaResponse = await axios.post('http://localhost:8000/process-comment', commentData);
                             
-                            logInfo("📩 Respuesta del servidor IA:", iaResponse.data);
-                            
-                            if (iaResponse.data.response) {
+                            if (iaResponse.data && iaResponse.data.response) {
                                 // Limpiar la respuesta
                                 const cleanedResponse = cleanResponse(iaResponse.data.response);
                                 logInfo(`✅ Respuesta limpia: ${cleanedResponse}`);
@@ -47,8 +42,7 @@ router.post('/', async (req, res) => {
                             logError("❌ Error procesando respuesta:", {
                                 message: error.message,
                                 response: error.response?.data,
-                                status: error.response?.status,
-                                stack: error.stack
+                                status: error.response?.status
                             });
                         }
                     }
