@@ -15,23 +15,24 @@ class CommunityManagerAgent:
         with open('../src/system_prompt.txt', 'r', encoding='utf-8') as f:
             self.system_prompt = f.read()
         
-        # Cargar los archivos de entrenamiento
-        self.training_data = self._load_training_files()
+        # Cargar los datos de fine-tuning
+        self.fine_tuning_data = self._load_fine_tuning_data()
+        print(f"📚 Datos de fine-tuning cargados: {len(self.fine_tuning_data)} ejemplos")
         
         # Inicializar el modelo a través de Ollama
         self.model = Ollama(
-            model="deepseek-r1:7b",  # Asegúrate que este sea el nombre correcto de tu modelo en ollama
-            base_url=self.ollama_url  # URL de Ollama
+            model="deepseek-r1:7b",
+            base_url=self.ollama_url
         )
         
         # Crear el template para las respuestas
         self.prompt_template = PromptTemplate(
-            input_variables=["system_prompt", "training_data", "user_comment"],
+            input_variables=["system_prompt", "fine_tuning", "user_comment"],
             template="""
             {system_prompt}
             
-            Información relevante:
-            {training_data}
+            Ejemplos de interacciones previas:
+            {fine_tuning}
             
             Comentario del usuario:
             {user_comment}
@@ -40,44 +41,44 @@ class CommunityManagerAgent:
             """
         )
     
-    def _load_training_files(self) -> str:
+    def _load_fine_tuning_data(self) -> str:
         """
-        Carga todos los archivos de entrenamiento del directorio training_files
+        Carga los datos de fine-tuning del archivo JSONL
         """
-        training_data = []
-        train_files_path = os.path.join(os.path.dirname(__file__), '..', 'train_files')
+        examples = []
+        fine_tuning_path = os.path.join(os.path.dirname(__file__), '..', 'train_files', 'copriter_finetuning_updated.jsonl')
         
         try:
-            for filename in os.listdir(train_files_path):
-                if filename.endswith('.txt'):
-                    file_path = os.path.join(train_files_path, filename)
-                    with open(file_path, 'r', encoding='utf-8') as f:
-                        training_data.append(f.read())
+            with open(fine_tuning_path, 'r', encoding='utf-8') as f:
+                for line in f:
+                    example = json.loads(line)
+                    examples.append(f"Usuario: {example['input']}\nRespuesta: {example['output']}\n")
             
-            return "\n\n".join(training_data)
+            return "\n".join(examples)
         except Exception as e:
-            print(f"Error cargando archivos de entrenamiento: {e}")
+            print(f"❌ Error cargando datos de fine-tuning: {e}")
             return ""
     
     async def process_comment(self, comment_data: Dict) -> Optional[str]:
         try:
-            # Preparar el prompt
-            prompt = self._prepare_prompt(comment_data)
-            
-            # Preparar la solicitud a Ollama
-            payload = {
-                "model": "deepseek-r1:7b",
-                "prompt": prompt,
-                "stream": False
-            }
+            # Preparar el prompt con los ejemplos de fine-tuning
+            prompt = self.prompt_template.format(
+                system_prompt=self.system_prompt,
+                fine_tuning=self.fine_tuning_data,
+                user_comment=comment_data['content']
+            )
             
             print(f"📤 Enviando solicitud a Ollama: {self.ollama_url}/api/generate")
             
             # Hacer la solicitud a Ollama
             response = requests.post(
                 f"{self.ollama_url}/api/generate",
-                json=payload,
-                timeout=160  # Aumentar el timeout a 30 segundos
+                json={
+                    "model": "deepseek-r1:7b",
+                    "prompt": prompt,
+                    "stream": False
+                },
+                timeout=120
             )
             
             # Verificar si la solicitud fue exitosa
@@ -98,21 +99,6 @@ class CommunityManagerAgent:
             print(f"❌ Error inesperado: {str(e)}")
             return None
 
-    def _prepare_prompt(self, comment_data: Dict) -> str:
-        # Extraer información relevante
-        content = comment_data.get('content', '')
-        user = comment_data.get('username', 'Usuario')
-        
-        # Construir el prompt
-        prompt = f"""Como community manager de la campaña política de Spadaro, responde al siguiente comentario de manera profesional y empática:
-
-Usuario: {user}
-Comentario: {content}
-
-Respuesta:"""
-        
-        return prompt
-    
     def _validate_response(self, response: str) -> bool:
         """
         Valida que la respuesta cumpla con los criterios establecidos
