@@ -77,7 +77,7 @@ class CommunityManagerAgent:
             response = requests.post(
                 f"{self.ollama_url}/api/generate",
                 json=payload,
-                timeout=120  # Aumentar el timeout a 30 segundos
+                timeout=160  # Aumentar el timeout a 30 segundos
             )
             
             # Verificar si la solicitud fue exitosa
