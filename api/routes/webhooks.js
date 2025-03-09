@@ -5,7 +5,8 @@ const { respondToComment, cleanResponse } = require('../utils/facebook');
 const { logInfo, logError } = require("../utils/logger");
 
 // URL del servidor de IA (interno)
-const IA_SERVER_URL = process.env.IA_SERVER_URL || 'http://localhost:8000';
+const PYTHON_PORT = process.env.PYTHON_SERVER_PORT || 8000;
+const IA_SERVER_URL = `http://localhost:${PYTHON_PORT}`;
 
 router.post('/', async (req, res) => {
     try {
@@ -26,10 +27,12 @@ router.post('/', async (req, res) => {
 
                         try {
                             // Enviar al servidor de IA
-                            logInfo(`🚀 Enviando a servidor IA local: ${IA_SERVER_URL}/process-comment`);
+                            logInfo(`🚀 Enviando a servidor IA: ${IA_SERVER_URL}/process-comment`);
                             const iaResponse = await axios.post(`${IA_SERVER_URL}/process-comment`, commentData, {
                                 timeout: 30000 // 30 segundos de timeout
                             });
+                            
+                            logInfo("📩 Respuesta del servidor IA:", iaResponse.data);
                             
                             if (iaResponse.data.response) {
                                 // Limpiar la respuesta
@@ -44,7 +47,8 @@ router.post('/', async (req, res) => {
                             logError("❌ Error procesando respuesta:", {
                                 message: error.message,
                                 response: error.response?.data,
-                                status: error.response?.status
+                                status: error.response?.status,
+                                stack: error.stack
                             });
                         }
                     }

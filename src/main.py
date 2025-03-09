@@ -2,6 +2,7 @@ from typing import Dict
 import uvicorn
 import json
 from agents.deepseek_agent import CommunityManagerAgent
+import os
 
 # Inicializar el agente
 agent = CommunityManagerAgent()
@@ -108,9 +109,10 @@ application = app
 
 if __name__ == "__main__":
     print("🤖 Iniciando servidor de IA...")
+    port = int(os.getenv('PYTHON_SERVER_PORT', 8000))
     uvicorn.run(
         "main:application",
         host="0.0.0.0",
-        port=8000,
+        port=port,
         reload=True
     )
