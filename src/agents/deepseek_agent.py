@@ -78,7 +78,7 @@ class CommunityManagerAgent:
                     "prompt": prompt,
                     "stream": False
                 },
-                timeout=120
+                timeout=180
             )
             
             # Verificar si la solicitud fue exitosa
