@@ -34,10 +34,15 @@ class CommunityManagerAgent:
             Ejemplos de interacciones previas:
             {fine_tuning}
             
+            Instrucciones adicionales:
+            - La respuesta DEBE ser concisa y NO exceder los 300 caracteres
+            - Mantén un tono amigable y profesional
+            - Evita respuestas largas o explicaciones extensas
+            
             Comentario del usuario:
             {user_comment}
             
-            Respuesta:
+            Respuesta (máximo 300 caracteres):
             """
         )
     
@@ -59,6 +64,31 @@ class CommunityManagerAgent:
             print(f"❌ Error cargando datos de fine-tuning: {e}")
             return ""
     
+    def _validate_response(self, response: str) -> bool:
+        """
+        Valida que la respuesta cumpla con los criterios establecidos
+        """
+        if len(response) > 300:
+            print(f"⚠️ Respuesta excede 300 caracteres ({len(response)} caracteres)")
+            return False
+        return True
+    
+    def _truncate_response(self, response: str) -> str:
+        """
+        Trunca la respuesta a 300 caracteres manteniendo oraciones completas
+        """
+        if len(response) <= 300:
+            return response
+            
+        # Buscar el último punto antes de los 300 caracteres
+        truncated = response[:300]
+        last_period = truncated.rfind('.')
+        
+        if last_period > 0:
+            return response[:last_period + 1].strip()
+        else:
+            return response[:297] + "..."
+    
     async def process_comment(self, comment_data: Dict) -> Optional[str]:
         try:
             # Preparar el prompt con los ejemplos de fine-tuning
@@ -78,7 +108,7 @@ class CommunityManagerAgent:
                     "prompt": prompt,
                     "stream": False
                 },
-                timeout=240
+                timeout=120
             )
             
             # Verificar si la solicitud fue exitosa
@@ -87,7 +117,14 @@ class CommunityManagerAgent:
             # Procesar la respuesta
             result = response.json()
             if 'response' in result:
-                return result['response'].strip()
+                response_text = result['response'].strip()
+                
+                # Validar y truncar si es necesario
+                if not self._validate_response(response_text):
+                    response_text = self._truncate_response(response_text)
+                    print(f"✂️ Respuesta truncada a: {len(response_text)} caracteres")
+                
+                return response_text
             else:
                 print("❌ Respuesta de Ollama no contiene el campo 'response'")
                 return None
@@ -97,14 +134,4 @@ class CommunityManagerAgent:
             return None
         except Exception as e:
             print(f"❌ Error inesperado: {str(e)}")
-            return None
-
-    def _validate_response(self, response: str) -> bool:
-        """
-        Valida que la respuesta cumpla con los criterios establecidos
-        """
-        if len(response) > 300:
-            return False
-        
-        # Aquí puedes agregar más validaciones según tus necesidades
-        return True 
+            return None 
