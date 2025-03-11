@@ -18,10 +18,22 @@ function truncateResponse(response) {
     return lastPeriod > 0 ? response.substring(0, lastPeriod + 1).trim() : truncated.substring(0, 297) + "...";
 }
 
-function isRecentComment(createdTime) {
-    const commentTime = new Date(createdTime).getTime();
+function isRecentComment(change) {
+    // Si no hay created_time, asumimos que es un comentario nuevo
+    if (!change.value.created_time) {
+        return true;
+    }
+
     const currentTime = new Date().getTime();
-    return (currentTime - commentTime) <= COMMENT_THRESHOLD;
+    const commentTime = new Date(change.value.created_time).getTime();
+    
+    logInfo("⏰ Tiempos:", {
+        comentario: new Date(commentTime).toISOString(),
+        actual: new Date(currentTime).toISOString(),
+        diferencia_ms: currentTime - commentTime
+    });
+
+    return true; // Temporalmente procesamos todos los comentarios
 }
 
 router.post('/', async (req, res) => {
@@ -32,11 +44,11 @@ router.post('/', async (req, res) => {
             for (const entry of req.body.entry) {
                 for (const change of entry.changes) {
                     if (change.value.item === 'comment' && change.value.verb === 'add') {
-                        // Verificar si el comentario es reciente
-                        if (!isRecentComment(change.value.created_time)) {
-                            logInfo("⏰ Ignorando comentario antiguo:", change.value.message);
-                            continue;
-                        }
+                        logInfo("📝 Datos del comentario:", {
+                            mensaje: change.value.message,
+                            usuario: change.value.from.name,
+                            created_time: change.value.created_time
+                        });
 
                         // Verificar si el comentario es de la página
                         if (change.value.from.name === BOT_PAGE_NAME) {
@@ -50,7 +62,7 @@ router.post('/', async (req, res) => {
                             commentId: change.value.comment_id
                         };
 
-                        logInfo("💬 Comentario nuevo:", commentData);
+                        logInfo("💬 Procesando comentario:", commentData);
 
                         try {
                             const iaResponse = await axios.post('http://localhost:8000/process-comment', commentData);
