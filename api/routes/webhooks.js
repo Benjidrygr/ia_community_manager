@@ -9,6 +9,14 @@ const BOT_PAGE_NAME = "CoPrinter SAC";
 const MAX_RESPONSE_LENGTH = 300;
 const COMMENT_THRESHOLD = 5 * 60 * 1000; // 5 minutos
 
+// Caché simple para comentarios respondidos
+const respondedComments = new Set();
+// Limpiar caché cada hora para evitar que crezca indefinidamente
+setInterval(() => {
+    respondedComments.clear();
+    logInfo("🧹 Caché de comentarios limpiado");
+}, 60 * 60 * 1000);
+
 function truncateResponse(response) {
     if (response.length <= MAX_RESPONSE_LENGTH) {
         return response;
@@ -44,11 +52,13 @@ router.post('/', async (req, res) => {
             for (const entry of req.body.entry) {
                 for (const change of entry.changes) {
                     if (change.value.item === 'comment' && change.value.verb === 'add') {
-                        logInfo("📝 Datos del comentario:", {
-                            mensaje: change.value.message,
-                            usuario: change.value.from.name,
-                            created_time: change.value.created_time
-                        });
+                        const commentId = change.value.comment_id;
+
+                        // Verificar si ya respondimos a este comentario
+                        if (respondedComments.has(commentId)) {
+                            logInfo("🔄 Comentario ya respondido, ignorando:", commentId);
+                            continue;
+                        }
 
                         // Verificar si el comentario es de la página
                         if (change.value.from.name === BOT_PAGE_NAME) {
@@ -59,7 +69,7 @@ router.post('/', async (req, res) => {
                         const commentData = {
                             content: change.value.message,
                             username: change.value.from.name,
-                            commentId: change.value.comment_id
+                            commentId: commentId
                         };
 
                         logInfo("💬 Procesando comentario:", commentData);
@@ -76,8 +86,11 @@ router.post('/', async (req, res) => {
                                 }
                                 
                                 logInfo(`✅ Enviando respuesta: ${response}`);
-                                await respondToComment(commentData.commentId, response);
-                                logInfo('✅ Respuesta enviada a Facebook');
+                                await respondToComment(commentId, response);
+                                
+                                // Marcar el comentario como respondido
+                                respondedComments.add(commentId);
+                                logInfo('✅ Respuesta enviada y comentario marcado como respondido');
                             }
                         } catch (error) {
                             logError("❌ Error procesando respuesta:", error);
